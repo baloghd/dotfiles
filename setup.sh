@@ -3,11 +3,8 @@ sudo apt update
 # install leftover configuration, if there is any
 sudo dpkg --configure -a
 
-# install git, curl
+# install git, curl, vim
 sudo apt install git curl vim -y 
-
-# install and setup vim 
-sudo apt install vim -y
 
 # install and setup zsh
 sudo apt install zsh zsh-common -y
@@ -22,7 +19,7 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 
 # install zsh plugins
-cat ~/.zshrc | sed 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions)/g' > ~/.zshrc
+sed -i 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions)/g' ~/.zshrc
 
 # install IBM Plex Mono and set it as default monospace font
 sudo apt install fonts-ibm-plex -y 
