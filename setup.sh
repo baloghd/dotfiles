@@ -1,5 +1,8 @@
 sudo apt update
 
+# install leftover configuration, if there is any
+sudo dpkg --configure -a
+
 # install and setup zsh
 sudo apt install zsh zsh-common zsh-autosuggestions zsh-syntax-highlighting -y
 
