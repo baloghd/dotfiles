@@ -11,8 +11,9 @@ sudo apt install vim -y
 
 # install and setup zsh
 sudo apt install zsh zsh-common -y
-chsh -s $(which zsh)
-bash -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" "" --unattended
+
+#chsh -s $(which zsh)
+yes | bash -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
 # zsh syntax highlighting
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
@@ -29,4 +30,4 @@ sudo apt install fonts-ibm-plex -y
 # install autojump
 sudo apt install autojump
 # add activation to .zshrc
-#echo ". /usr/share/autojump/autojump.sh" >> ~/.zshrc
+echo ". /usr/share/autojump/autojump.sh" >> ~/.zshrc
