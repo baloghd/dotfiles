@@ -10,8 +10,18 @@ sudo apt install git curl -y
 sudo apt install vim -y
 
 # install and setup zsh
-sudo apt install zsh zsh-common zsh-autosuggestions zsh-syntax-highlighting -y
+sudo apt install zsh zsh-common -y
+chsh -s $(which zsh)
 bash -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" "" --unattended
+
+# zsh syntax highlighting
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+# zsh autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+# install zsh plugins
+echo ~/.zshrc | sed 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions)/g' > ~/.zshrc
 
 # install IBM Plex Mono and set it as default monospace font
 sudo apt install fonts-ibm-plex -y 
