@@ -21,7 +21,7 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 
 # install zsh plugins
-echo ~/.zshrc | sed 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions)/g' > ~/.zshrc
+cat ~/.zshrc | sed 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions)/g' > ~/.zshrc
 
 # install IBM Plex Mono and set it as default monospace font
 sudo apt install fonts-ibm-plex -y 
