@@ -4,7 +4,7 @@ sudo apt update
 sudo dpkg --configure -a
 
 # install git, curl
-sudo apt install git curl -y 
+sudo apt install git curl vim -y 
 
 # install and setup vim 
 sudo apt install vim -y
@@ -29,4 +29,4 @@ sudo apt install fonts-ibm-plex -y
 # install autojump
 sudo apt install autojump
 # add activation to .zshrc
-echo ". /usr/share/autojump/autojump.sh" >> .zshrc
+#echo ". /usr/share/autojump/autojump.sh" >> ~/.zshrc
