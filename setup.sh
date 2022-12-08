@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# set themes to dark
+gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+gsettings set org.gnome.desktop.interface gtk-theme Yaru-dark
+gsettings set org.gnome.desktop.interface color-scheme prefer-dark 
+
 sudo apt update
 
 # install leftover configuration, if there is any
@@ -9,7 +16,6 @@ sudo apt install git curl vim -y
 # install and setup zsh
 sudo apt install zsh zsh-common -y
 
-#chsh -s $(which zsh)
 yes | bash -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
 # zsh syntax highlighting
@@ -28,3 +34,10 @@ sudo apt install fonts-ibm-plex -y
 sudo apt install autojump
 # add activation to .zshrc
 echo ". /usr/share/autojump/autojump.sh" >> ~/.zshrc
+
+# change shell to zsh
+chsh -s $(which zsh)
+
+# change zsh theme to kafeitu
+sed -i "s/ZSH_THEME=.*/ZSH_THEME=\"kafeitu\"/g" ~/.zshrc
+
