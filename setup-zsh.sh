@@ -1,18 +1,5 @@
 #!/bin/bash
 
-# set themes to dark
-gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
-gsettings set org.gnome.desktop.interface gtk-theme Yaru-dark
-gsettings set org.gnome.desktop.interface color-scheme prefer-dark 
-
-sudo apt update
-
-# install leftover configuration, if there is any
-sudo dpkg --configure -a
-
-# install git, curl, vim
-sudo apt install git curl vim -y 
-
 # install and setup zsh
 sudo apt install zsh zsh-common -y
 
@@ -26,9 +13,6 @@ git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.
 
 # install zsh plugins
 sed -i 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions)/g' ~/.zshrc
-
-# install IBM Plex Mono and set it as default monospace font
-sudo apt install fonts-ibm-plex -y 
 
 # install autojump
 sudo apt install autojump
