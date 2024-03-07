@@ -36,6 +36,8 @@ sudo apt install apt-transport-https
 sudo apt update
 sudo apt install code
 
+cp vscode/settings.json ~/.config/Code/User
+
 
 # spotify
 sudo snap install spotify 
