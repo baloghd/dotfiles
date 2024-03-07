@@ -38,6 +38,19 @@ sudo apt install code
 
 cp vscode/settings.json ~/.config/Code/User
 
+# install vscode extensions
+# git graph
+code --install-extension --force mhutchie.git-graph
+# auto newline 
+code --install-extension --force chang196700.newline
+# json beautify
+code --install-extension --force meezilla.json
+# python
+code --install-extension ms-python.debugpy
+code --install-extension ms-python.python
+code --install-extension ms-python.vscode-pylance
+
+
 
 # spotify
 sudo snap install spotify 
