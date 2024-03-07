@@ -14,6 +14,9 @@ gsettings set org.gnome.desktop.interface enable-hot-corners true
 # disable animations
 gsettings set org.gnome.desktop.interface enable-animations false
 
+# don't show home
+gsettings set org.gnome.shell.extensions.ding show-home false
+
 # tweaks
 sudo apt install gnome-tweaks
 
