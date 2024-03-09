@@ -3,5 +3,4 @@
     "git.confirmSync": false,
     "security.workspace.trust.untrustedFiles": "open",
     "editor.fontFamily": "'JetBrains Mono', 'Droid Sans Mono', 'monospace', monospace",
-    "workbench.colorTheme": "Abyss"
 }

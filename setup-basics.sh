@@ -14,7 +14,7 @@ git config --global user.email "baloghd@sent.com"
 
 
 # install system tools
-sudo apt install htop btop smartmontools net-tools lm-sensors dconf-editor -y 
+sudo apt install htop btop smartmontools net-tools lm-sensors dconf-editor inotify-hookable inotify-tools -y 
 
 # install nfs
 sudo apt install nfs-common -y
@@ -49,8 +49,14 @@ code --install-extension --force meezilla.json
 code --install-extension ms-python.debugpy
 code --install-extension ms-python.python
 code --install-extension ms-python.vscode-pylance
-
+# systemd unit file
+code --install-extension coolbear.systemd-unit-file
 
 
 # spotify
 sudo snap install spotify 
+
+# noise generators
+sudo apt install sox
+alias bnoise="play -n synth brownnoise"
+alias wnoise="play -n synth whitenoise"
