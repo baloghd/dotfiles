@@ -1,0 +1,12 @@
+[Unit]
+Description=Watch ~/main-obs-vault for changes, upload to local RAID storage
+After=network-online.target
+
+[Service]
+User=__USERNAME__
+ExecStart=/usr/bin/inotify-hookable --watch-files /home/__USERNAME__/main-obs-vault --on-modify-command "rclone copy -vv -P /home/__USERNAME__/main-obs-vault /mnt/nfs/raid1-camelot/obsidian/main-obs-vault" 
+Restart=always
+RestartSec=10
+ 
+[Install]
+WantedBy=multi-user.target

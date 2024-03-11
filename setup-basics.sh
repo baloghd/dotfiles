@@ -12,9 +12,11 @@ gh auth setup-git
 git config --global user.name "baloghd"                        
 git config --global user.email "baloghd@sent.com"
 
-
 # install system tools
 sudo apt install htop btop smartmontools net-tools lm-sensors dconf-editor inotify-hookable inotify-tools -y 
+
+# rclone setup
+touch /home/$USER/.config/rclone/rclone.conf
 
 # install nfs
 sudo apt install nfs-common -y
