@@ -62,5 +62,5 @@ sudo apt-get update && sudo apt-get install spotify-client
 
 # noise generators
 sudo apt install sox
-alias bnoise="play -n synth brownnoise"
-alias wnoise="play -n synth whitenoise"
+alias bnoise="amixer -q set Master 20% && play -n synth brownnoise"
+alias wnoise="amixer -q set Master 20% && play -n synth whitenoise"
