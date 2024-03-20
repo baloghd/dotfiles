@@ -53,7 +53,18 @@ code --install-extension ms-python.python
 code --install-extension ms-python.vscode-pylance
 # systemd unit file
 code --install-extension coolbear.systemd-unit-file
-
+# different workspace colors
+code --install-extension johnpapa.vscode-peacock
+# docker extension
+code --install-extension ms-azuretools.vscode-docker
+# thunder client
+code --install-extension rangav.vscode-thunder-client
+# jupyter 
+code --install-extension ms-toolsai.jupyter
+code --install-extension ms-toolsai.jupyter-keymap
+code --install-extension ms-toolsai.jupyter-renderers
+code --install-extension ms-toolsai.vscode-jupyter-cell-tags
+code --install-extension ms-toolsai.vscode-jupyter-slideshow
 
 # spotify
 curl -sS https://download.spotify.com/debian/pubkey_6224F9941A8AA6D1.gpg | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg
