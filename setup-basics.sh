@@ -6,7 +6,7 @@ sudo apt update
 sudo dpkg --configure -a
 
 # install git, curl, vim
-sudo apt install git gh curl vim build-essential apt-transport-https -y 
+sudo apt install git gh curl vim build-essential apt-transport-https openssh-server -y 
 gh auth login
 gh auth setup-git
 git config --global user.name "baloghd"                        
@@ -20,6 +20,9 @@ touch /home/$USER/.config/rclone/rclone.conf
 
 # install nfs
 sudo apt install nfs-common -y
+
+# install fuse for running appimages
+sudo apt install libfuse2 -y
 
 # install keepassxc
 sudo apt install keepassxc -y 

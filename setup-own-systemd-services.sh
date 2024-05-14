@@ -1,5 +1,5 @@
 #!/bin/bash
-USER=$(whoami)
+USER=xcvb
 
 # pass-dropbox
 sed "s/__USERNAME__/$USER/g" systemd/pass-dropbox.service > /etc/systemd/system/pass-dropbox.service
