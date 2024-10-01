@@ -8,6 +8,7 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
+      - ../syncthing/:/config
       - /media/xcvb/raid1-camelot:/raid1-camelot
       - /media/xcvb/raid1-bigc:/raid1-bigc
     ports:

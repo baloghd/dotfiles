@@ -1,0 +1,3 @@
+<gui enabled="true" tls="false">
+  <address>0.0.0.0:8384</address>
+</gui>
