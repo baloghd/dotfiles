@@ -30,6 +30,9 @@ sudo apt install keepassxc -y
 # install celluloid
 sudo apt install gnome-mpv -y
 
+# install ripgrep
+sudo apt install ripgrep -y
+
 # vscode
 sudo apt-get install wget gpg -y 
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
