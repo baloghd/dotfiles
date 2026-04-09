@@ -1,0 +1,1 @@
+alias yt-dlp-vpn="docker exec -it yt-vpn-debian-yt-dlp-1 yt-dlp"

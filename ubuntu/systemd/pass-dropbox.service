@@ -1,0 +1,13 @@
+[Unit]
+Description=Watch ~/pass.kdbx for changes and upload to Dropbox
+After=network-online.target
+
+[Service]
+User=__USERNAME__
+ExecStart=/usr/bin/inotify-hookable --watch-files /home/__USERNAME__/pass.kdbx --on-modify-command "rclone copy -vv -P /home/__USERNAME__/pass.kdbx dropbox:/Apps/Keeweb" 
+Restart=always
+RestartSec=10
+ 
+[Install]
+WantedBy=multi-user.target
+ 
