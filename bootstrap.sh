@@ -84,10 +84,20 @@ ORDER=(
   setup-rclone
 )
 
+# Normalize a user-supplied NAME to the canonical "setup-NAME" form.
+# Accepts both "docker" and "setup-docker" on the command line.
+normalize_name() {
+  case "$1" in
+    setup-*) printf '%s\n' "$1" ;;
+    *)       printf 'setup-%s\n' "$1" ;;
+  esac
+}
+
 # Apply --only / --skip filtering.
 if [ ${#ONLY[@]} -gt 0 ]; then
   FILTERED=()
-  for name in "${ONLY[@]}"; do
+  for raw in "${ONLY[@]}"; do
+    name="$(normalize_name "$raw")"
     found=0
     for o in "${ORDER[@]}"; do
       if [ "$o" = "$name" ]; then
@@ -95,7 +105,7 @@ if [ ${#ONLY[@]} -gt 0 ]; then
       fi
     done
     if [ "$found" = 0 ]; then
-      echo "warning: --only $name not in run order, ignoring" >&2
+      echo "warning: --only $raw not in run order, ignoring" >&2
     fi
   done
   ORDER=("${FILTERED[@]}")
@@ -103,8 +113,9 @@ else
   FILTERED=()
   for o in "${ORDER[@]}"; do
     skip=0
-    for s in "${SKIP[@]}"; do
-      [ "$o" = "$s" ] && skip=1
+    for raw in "${SKIP[@]}"; do
+      name="$(normalize_name "$raw")"
+      [ "$o" = "$name" ] && skip=1
     done
     [ "$skip" = 0 ] && FILTERED+=("$o")
   done
