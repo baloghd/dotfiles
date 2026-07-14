@@ -21,6 +21,10 @@
 
 # Avoid double-sourcing.
 if [ -n "${DOTFILES_DISTRO_LOADED:-}" ]; then
+  # In a sourced file `return` exits the file. If invoked directly (e.g.,
+  # `bash detect-distro.sh`), return fails and we fall through, which is
+  # fine — re-setting exported vars is idempotent.
+  # shellcheck disable=SC2317
   return 0 2>/dev/null || true
 fi
 DOTFILES_DISTRO_LOADED=1

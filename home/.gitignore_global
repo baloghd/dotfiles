@@ -1,0 +1,41 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.*.swp
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts
+*.o
+*.so
+*.a
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+node_modules/
+target/
+*.class
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+
+# Local-only env / secrets
+.env
+.env.local
+*.local
+
+# Media working files
+*.wav.tmp
+*.mp4.tmp
+
+# Misc
+*.DS_Store
+.cache/
