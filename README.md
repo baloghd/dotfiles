@@ -67,6 +67,9 @@ dotfiles/
 └── home/                            # dotfiles tracked under real names
     ├── .gitconfig
     ├── .gitignore_global
+    ├── .pi/                           # pi agent global config
+    │   └── agent/
+    │       └── APPEND_SYSTEM.md     # global AI agent style / behavior rules
     ├── .tmux.conf
     ├── .vimrc
     └── .ssh/
@@ -166,6 +169,19 @@ DOTFILES_SSH_USERNAME=alice DOTFILES_SSH_HOMELAB_HOST=nas.local ./install-home.s
    `__UPPERCASE_PLACEHOLDER__` and add a substitution line to
    `install-home.sh`'s `render_template` function.
 3. Test with `./install-home.sh --dry-run`, then run for real.
+
+## Pi agent configuration
+
+Global AI-agent rules live in `home/.pi/agent/APPEND_SYSTEM.md`. On
+installation, `install-home.sh` symlinks each file individually into
+`~/.pi/agent/` — it does not symlink the whole directory, because
+`~/.pi/agent/` also contains machine-specific files (`auth.json`,
+`trust.json`, `sessions/`, etc.) that must not be tracked.
+
+`APPEND_SYSTEM.md` is appended to pi's system prompt at startup and
+overrides any default tendencies. Keep it focused on global style and
+behavior rules, not project-specific context. Project-specific
+context belongs in per-project `AGENTS.md` or `CLAUDE.md` files.
 
 ## What's NOT in this repo
 
