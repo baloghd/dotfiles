@@ -136,6 +136,25 @@ if [ -f "$ssh_template" ]; then
   render_template "$ssh_template" "$HOME/.ssh/config"
 fi
 
+# Install pi agent config files individually. We do not symlink the whole
+# ~/.pi/agent directory because it also contains machine-specific files
+# (auth.json, trust.json, sessions, etc.) that must not be tracked.
+pi_agent_src="$HOME_SRC/.pi/agent"
+pi_agent_dst="$HOME/.pi/agent"
+if [ -d "$pi_agent_src" ]; then
+  echo
+  echo "==> Installing pi agent config from $pi_agent_src"
+  echo "    target: $pi_agent_dst"
+  echo
+
+  run mkdir -p "$pi_agent_dst"
+
+  while IFS= read -r -d '' src; do
+    rel="${src#$pi_agent_src/}"
+    link_dotfile "$src" "$pi_agent_dst/$rel"
+  done < <(find "$pi_agent_src" -type f -print0)
+fi
+
 echo
 echo "==> Done."
 echo "    Source files in $HOME_SRC; targets in $HOME."
