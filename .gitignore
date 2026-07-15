@@ -1,3 +1,32 @@
+# Local LAN mapping (referenced by setup-hosts.sh which moved to homelab repo,
+# but kept defensive in case anyone runs old scripts from history).
 local-lan-hosts-mapping.txt
 remote-pg.txt
+
+# Python
 venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local overrides — anything *.local is machine-specific.
+*.local
+
+# Generated / runtime artifacts
+home/.installed
+syncthing/config/
+
+# Secrets / env files
+.env
+.env.*
+!.env.example

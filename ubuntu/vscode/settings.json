@@ -1,8 +1,0 @@
-{
-    "git.autofetch": true,
-    "git.confirmSync": false,
-    "security.workspace.trust.untrustedFiles": "open",
-    "editor.fontFamily": "'JetBrains Mono', 'Droid Sans Mono', 'monospace', monospace",
-    "editor.fontWeight": "630",
-    "window.customTitleBarVisibility": "auto"
-}

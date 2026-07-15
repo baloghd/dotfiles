@@ -1,0 +1,67 @@
+[user]
+	name = baloghd
+	email = baloghd@sent.com
+
+[core]
+	editor = vim
+	# Global ignore file (symlinked to ~/.gitignore_global by install-home.sh).
+	excludesFile = ~/.gitignore_global
+	# Autocrlf: leave line endings alone (works on Linux; switch to true on Windows).
+	autocrlf = input
+	# Default branch for new repos.
+	# init.defaultBranch = main
+
+[init]
+	defaultBranch = main
+
+[color]
+	ui = auto
+
+[alias]
+	# Common shortcuts
+	st = status
+	co = checkout
+	br = branch
+	ci = commit
+	unstage = reset HEAD --
+	last = log -1 HEAD
+	visual = !gitk
+	# Log aliases
+	l = log --oneline --decorate
+	ll = log --oneline --decorate --graph
+	lall = log --oneline --decorate --graph --all
+	# Diff aliases
+	d = diff
+	ds = diff --stat
+	# Branch cleanup
+	bd = branch -d
+	bD = branch -D
+	# Amend without editing message
+	amend = commit --amend --no-edit
+
+[push]
+	default = simple
+
+[pull]
+	# Always rebase on pull to avoid spurious merge commits.
+	rebase = true
+
+[rebase]
+	# Preserve merges during interactive rebase.
+	autoStash = true
+
+[merge]
+	# No fast-forward by default; always create a merge commit.
+	# ff = false
+
+[diff]
+	# Show moved code in a separate section.
+	# renames = true
+
+[fetch]
+	# Prune deleted remote-tracking refs on fetch.
+	prune = true
+
+[help]
+	# Use 'auto' so quick help on less-capable paginators.
+	autocorrect = 10

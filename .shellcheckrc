@@ -1,0 +1,18 @@
+# shellcheck configuration
+# https://github.com/koalaman/shellcheck/blob/master/shellcheckrc
+
+# Enable optional checks (defaults are already: add-default-case,
+# avoid-nullary-conditions, quote-safe-variables).
+# Common useful adds: quote-variable-in-braces, deprecation.
+enable=quote,deprecation
+
+# Disable checks that are noisy for this repo's style.
+# SC2086: double-quote to prevent globbing (we know what we want here).
+# SC2155: declare and assign separately (often intentional in short scripts).
+disable=SC2086,SC2155
+
+# Severity: only fail on errors and warnings, not info/style.
+severity=warning
+
+# Default shell dialect for shebang-less files we run with bash.
+shell=bash
