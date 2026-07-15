@@ -30,5 +30,14 @@ jobs:
       - name: shellcheck
         run: |
           set -e
-          shellcheck bootstrap.sh install-home.sh
-          shellcheck scripts/**/*.sh lib/*.sh
+          # Use --severity=warning so SC1091 (info) about unsourced files
+          # doesn't fail the run. .shellcheckrc also sets this but shellcheck
+          # on Ubuntu's apt repo (v0.10) doesn't always read it reliably;
+          # pass the flag explicitly so CI behavior matches local.
+          #
+          # Use `find` rather than a glob so we get every *.sh recursively,
+          # including scripts at the top of scripts/ and lib/. Bash's `**`
+          # would need `shopt -s globstar` and the non-globstar fallback
+          # would miss top-level files.
+          shellcheck --severity=warning bootstrap.sh install-home.sh
+          find scripts lib -name '*.sh' -print0 | xargs -0 -n1 shellcheck --severity=warning
