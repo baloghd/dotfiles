@@ -115,9 +115,6 @@ shellcheck --severity=warning scripts/*.sh lib/*.sh bootstrap.sh install-home.sh
 - **Secrets, API tokens, real SSH keys, KeePass DBs, Obsidian vaults.**
 - **Machine-specific overrides** — use `*.local` files (gitignored).
 - **Generated artifacts** under `home/.installed` (gitignored).
-- **Agent self-attribution** — never add "Co-authored-by: pi" or any
-  credit/attribution for the coding agent in commit messages, PR bodies,
-  or file comments. The agent is a tool, not a collaborator.
 
 ## Layout
 
