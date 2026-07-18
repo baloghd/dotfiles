@@ -33,8 +33,8 @@ gh pr create --base main --head <branch> --fill
 
 # 4. Wait for CI. Address any shellcheck failures.
 
-# 5. Squash-merge once green.
-gh pr merge --squash --delete-branch
+# 5. Merge (merge commit) once green.
+gh pr merge --merge --delete-branch
 ```
 
 ### Branch naming
@@ -75,7 +75,7 @@ Conventional Commits, one logical change per commit.
 - `bash -n` syntax check on every shell file
 - `shellcheck --severity=warning` on every shell file
 
-PRs must pass CI before squash-merge.
+PRs must pass CI before merging.
 
 Local equivalents:
 
