@@ -114,8 +114,6 @@ shellcheck --severity=warning scripts/*.sh lib/*.sh bootstrap.sh install-home.sh
 - **Homelab infrastructure** — see the `homelab` repo.
 - **Secrets, API tokens, real SSH keys, KeePass DBs, Obsidian vaults.**
 - **Machine-specific overrides** — use `*.local` files (gitignored).
-- **`PLAN.md` after the work it described lands.** `git rm` it once the
-  PR it motivated is merged.
 - **Generated artifacts** under `home/.installed` (gitignored).
 
 ## Layout
@@ -125,7 +123,6 @@ dotfiles/
 ├── AGENTS.md                  # this file
 ├── README.md                  # user-facing overview
 ├── LICENSE                    # GPL-3.0
-├── PLAN.md                    # active plan; remove when done
 ├── .gitignore
 ├── .shellcheckrc
 ├── .github/workflows/shellcheck.yml
