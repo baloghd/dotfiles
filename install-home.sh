@@ -136,24 +136,27 @@ if [ -f "$ssh_template" ]; then
   render_template "$ssh_template" "$HOME/.ssh/config"
 fi
 
-# Install pi agent config files individually. We do not symlink the whole
-# ~/.pi/agent directory because it also contains machine-specific files
-# (auth.json, trust.json, sessions, etc.) that must not be tracked.
-pi_agent_src="$HOME_SRC/.pi/agent"
-pi_agent_dst="$HOME/.pi/agent"
-if [ -d "$pi_agent_src" ]; then
+# Install config files individually for directories that also contain
+# machine-specific or unrelated files, so the whole directory must not be
+# symlinked (e.g. ~/.pi/agent has auth.json, sessions; ~/.local/bin and
+# ~/.agents/skills are shared with other tools).
+for subdir in .pi/agent .config/worktrunk .local/bin .agents/skills; do
+  src_dir="$HOME_SRC/$subdir"
+  dst_dir="$HOME/$subdir"
+  [ -d "$src_dir" ] || continue
+
   echo
-  echo "==> Installing pi agent config from $pi_agent_src"
-  echo "    target: $pi_agent_dst"
+  echo "==> Installing $subdir files from $src_dir"
+  echo "    target: $dst_dir"
   echo
 
-  run mkdir -p "$pi_agent_dst"
+  run mkdir -p "$dst_dir"
 
   while IFS= read -r -d '' src; do
-    rel="${src#$pi_agent_src/}"
-    link_dotfile "$src" "$pi_agent_dst/$rel"
-  done < <(find "$pi_agent_src" -type f -print0)
-fi
+    rel="${src#$src_dir/}"
+    link_dotfile "$src" "$dst_dir/$rel"
+  done < <(find "$src_dir" -type f -print0)
+done
 
 echo
 echo "==> Done."

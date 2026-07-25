@@ -21,6 +21,8 @@ Thumbs.db
 
 # Local overrides — anything *.local is machine-specific.
 *.local
+# ...but home/.local/ is the real ~/.local (e.g. bin/wt-llm), tracked on purpose.
+!home/.local/
 
 # Generated / runtime artifacts
 home/.installed
