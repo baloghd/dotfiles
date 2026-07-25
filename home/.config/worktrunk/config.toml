@@ -1,0 +1,5 @@
+[commit.generation]
+command = "wt-llm"
+
+[list]
+summary = true

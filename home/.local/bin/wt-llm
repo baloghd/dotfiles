@@ -1,0 +1,3 @@
+#!/bin/sh
+# worktrunk LLM commit-message generator: prompt on stdin -> message on stdout
+exec pi -p "$(cat)"
