@@ -5,6 +5,7 @@
 #   - Files in home/ starting with '.' are symlinked to $HOME/$filename.
 #   - home/.ssh/config.template is rendered (env-var substitution) into
 #     $HOME/.ssh/config. Existing config is backed up before overwrite.
+#   - Files git ignores are skipped, so generated files never become links.
 #   - Any existing target is backed up to <target>.bak.<timestamp> first.
 #
 # Flags:
@@ -139,8 +140,10 @@ fi
 # Install config files individually for directories that also contain
 # machine-specific or unrelated files, so the whole directory must not be
 # symlinked (e.g. ~/.pi/agent has auth.json, sessions; ~/.local/bin and
-# ~/.agents/skills are shared with other tools).
-for subdir in .pi/agent .config/worktrunk .local/bin .agents/skills; do
+# ~/.agents/skills are shared with other tools; ~/.config/herdr-app holds
+# live layout clicks in layouts/.state and files the app generates into
+# mod folders).
+for subdir in .pi/agent .config/herdr-app .config/worktrunk .local/bin .agents/skills; do
   src_dir="$HOME_SRC/$subdir"
   dst_dir="$HOME/$subdir"
   [ -d "$src_dir" ] || continue
@@ -154,6 +157,13 @@ for subdir in .pi/agent .config/worktrunk .local/bin .agents/skills; do
 
   while IFS= read -r -d '' src; do
     rel="${src#$src_dir/}"
+    # Skip files git ignores: herdr-app writes gpui-kit.d.ts and jsconfig.json
+    # into a mod folder beside its own files, and a stray one must not become
+    # a symlink pointing into this checkout.
+    if git -C "$SCRIPT_DIR" check-ignore -q -- "home/$subdir/$rel"; then
+      printf 'skip: %s (ignored)\n' "$dst_dir/$rel"
+      continue
+    fi
     link_dotfile "$src" "$dst_dir/$rel"
   done < <(find "$src_dir" -type f -print0)
 done
