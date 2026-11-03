@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+"""DeepSeek Search & Fetch CLI.
+
+Wraps the raw JSON tool APIs (https://api-docs.deepseek.com/guides/search):
+  deepseek search "query"            web search results
+  deepseek fetch <url>               page content as Markdown
+
+Options for both: --count N (search), --json (raw response), --full
+(include page content / full fields in pretty output).
+
+Authentication: DEEPSEEK_API_KEY env var, or the key stored in
+~/.config/deepseek/env (as written by the setup wizard).
+"""
+
+import argparse
+import json
+import os
+import pathlib
+import sys
+import urllib.error
+import urllib.request
+
+API_BASE = "https://api.deepseek.com"
+ENV_FILE = pathlib.Path.home() / ".config" / "deepseek" / "env"
+
+
+def load_key() -> str:
+    key = os.environ.get("DEEPSEEK_API_KEY")
+    if key:
+        return key
+    if ENV_FILE.is_file():
+        for line in ENV_FILE.read_text().splitlines():
+            if line.startswith("DEEPSEEK_API_KEY=") or line.startswith("export DEEPSEEK_API_KEY="):
+                return line.split("=", 1)[1].strip().strip("'\"")
+    sys.exit(
+        f"error: no API key found. Set DEEPSEEK_API_KEY or run the setup "
+        f"wizard so {ENV_FILE} exists."
+    )
+
+
+def call(path: str, body: dict) -> dict:
+    request = urllib.request.Request(
+        API_BASE + path,
+        data=json.dumps(body).encode(),
+        headers={
+            "Authorization": f"Bearer {load_key()}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as err:
+        detail = err.read().decode(errors="replace")
+        try:
+            message = json.loads(detail)["error"]["message"]
+        except Exception:
+            message = detail or str(err)
+        sys.exit(f"error: HTTP {err.code}: {message}")
+
+
+def search(args: argparse.Namespace) -> None:
+    body: dict = {"query": args.query}
+    if args.count is not None:
+        body["count"] = args.count
+    if args.question:
+        body["ori_question"] = args.question
+    if args.limits:
+        body["query"] = f"{args.query} {args.limits}"
+    if args.lang:
+        body["query"] += f" lang:{args.lang}"
+    # The API only returns page content when need_content is true; ask for it
+    # only when --full is set (content costs response size, not billing).
+    body["need_content"] = args.full
+    data = call("/v1/tools/search", body)
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return
+    results = data.get("results", [])
+    if not results:
+        print("(no results)")
+        return
+    for item in results:
+        date = item.get("date") or "?"
+        print(f"[{item['rerank_score']:.1f}] {item['title']}  ({date})")
+        print(f"  {item['url']}")
+        snippet = item.get("summary") or item.get("snippet") or ""
+        if args.full:
+            content = item.get("content", "")
+            if content and len(content) > 2000:
+                content = content[:2000] + " …"
+            snippet = content or snippet
+        print(f"  {snippet.strip()}")
+        print()
+
+
+def fetch(args: argparse.Namespace) -> None:
+    data = call("/v1/tools/fetch", {"url": args.url})
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return
+    title = data.get("title", "")
+    if title:
+        print(f"# {title}\n")
+    print(data.get("content", ""))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_search = sub.add_parser("search", help="web search")
+    p_search.add_argument("query")
+    p_search.add_argument("--count", type=int, help="results (1-50, default 10)")
+    p_search.add_argument(
+        "--question", help="original user question for better query understanding"
+    )
+    p_search.add_argument(
+        "--limits",
+        help='raw operators such as "site:github.com after:2025 -site:pinterest.com"',
+    )
+    p_search.add_argument("--lang", help="comma-separated language codes, e.g. hu,en")
+    p_search.add_argument("--full", action="store_true", help="include page content")
+    p_search.add_argument("--json", action="store_true", help="print raw response")
+    p_search.set_defaults(func=search)
+
+    p_fetch = sub.add_parser("fetch", help="fetch a page as Markdown")
+    p_fetch.add_argument("url")
+    p_fetch.add_argument("--json", action="store_true", help="print raw response")
+    p_fetch.set_defaults(func=fetch)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
