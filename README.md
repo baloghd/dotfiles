@@ -71,6 +71,9 @@ dotfiles/
     │   └── agent/
     │       ├── AGENTS.md            # global Python / project conventions
     │       └── APPEND_SYSTEM.md     # global AI agent style / behavior rules
+    ├── .local/
+    │   └── bin/
+    │       └── deepseek           # DeepSeek Search/Fetch CLI (Python stdlib)
     ├── .tmux.conf
     ├── .vimrc
     └── .ssh/
