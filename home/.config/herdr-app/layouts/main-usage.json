@@ -96,7 +96,7 @@
           "id": "tabs",
           "type": "block",
           "content": {
-            "mod": "tabs"
+            "mod": "tabs-metrics"
           },
           "size": {
             "px": 42
@@ -156,6 +156,13 @@
                       "type": "block",
                       "content": {
                         "mod": "changes"
+                      }
+                    },
+                    {
+                      "id": "metrics",
+                      "type": "block",
+                      "content": {
+                        "mod": "metrics"
                       }
                     }
                   ],

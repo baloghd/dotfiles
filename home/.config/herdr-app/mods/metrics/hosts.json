@@ -1,0 +1,5 @@
+[
+  { "id": "opti", "label": "opti", "ssh": "root@192.168.1.7" },
+  { "id": "tank", "label": "tank", "ssh": "root@192.168.1.6" },
+  { "id": "vm40b", "label": "vm40b", "ssh": "vm40b" }
+]
