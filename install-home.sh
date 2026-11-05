@@ -90,6 +90,22 @@ link_dotfile() {
   run ln -s -- "$src" "$dst"
 }
 
+# copy_dotfile <src> <dst> — copies src onto dst (herdr-app watches real
+# files; a symlink's target mtime changes do not reload mods).
+copy_dotfile() {
+  local src="$1" dst="$2"
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    if [ "$FORCE" != 1 ] && [ -f "$dst" ] && [ ! -L "$dst" ] && cmp -s -- "$src" "$dst"; then
+      printf 'same: %s\n' "$dst"
+      return
+    fi
+  fi
+  backup_if_exists "$dst"
+  mkdir -p "$(dirname "$dst")"
+  printf 'copy: %s -> %s\n' "$src" "$dst"
+  run cp -a -- "$src" "$dst"
+}
+
 # render_template <src> <dst> — substitutes __VAR__ → env var (or default),
 # writes to dst. Existing dst is backed up first.
 render_template() {
@@ -142,7 +158,8 @@ fi
 # symlinked (e.g. ~/.pi/agent has auth.json, sessions; ~/.local/bin and
 # ~/.agents/skills are shared with other tools; ~/.config/herdr-app holds
 # live layout clicks in layouts/.state and files the app generates into
-# mod folders).
+# mod folders). herdr-app is copied, not linked: the app reloads mods on
+# real-file writes and misses symlink-target updates.
 for subdir in .pi/agent .config/herdr-app .config/worktrunk .local/bin .agents/skills; do
   src_dir="$HOME_SRC/$subdir"
   dst_dir="$HOME/$subdir"
@@ -164,7 +181,11 @@ for subdir in .pi/agent .config/herdr-app .config/worktrunk .local/bin .agents/s
       printf 'skip: %s (ignored)\n' "$dst_dir/$rel"
       continue
     fi
-    link_dotfile "$src" "$dst_dir/$rel"
+    if [ "$subdir" = ".config/herdr-app" ]; then
+      copy_dotfile "$src" "$dst_dir/$rel"
+    else
+      link_dotfile "$src" "$dst_dir/$rel"
+    fi
   done < <(find "$src_dir" -type f -print0)
 done
 

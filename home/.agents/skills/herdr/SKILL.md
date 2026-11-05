@@ -43,8 +43,9 @@ Files and Changes are stack children under `panel` → `panel-body` in the main 
 2. Add a block to the personal layout's `panel-body` stack (`id` = mod name, `content.mod` = folder).
 3. Clone `tabs` (it hardcodes panel buttons) and add a `panelButton` gated on `shared("workspace.panels")`.
 4. Point the layout's tabs block at the clone.
-5. Append the panel id to `shared.json` → `workspace.panels`.
+5. Append the panel id to `shared.json` → `workspace.panels` (layout switches can drop custom ids; personal `tabs-*` clones should hardcode their extra button).
 6. Open with `layout.select` + `layout.show`, or the new tab-bar button.
+7. Install herdr-app files as **copies**, not symlinks (`install-home` does this): herdr reloads on real-file writes and misses symlink-target updates.
 
 ```sh
 herdr-app do layout.select '{"stack":"panel-body","child":"<id>"}'
