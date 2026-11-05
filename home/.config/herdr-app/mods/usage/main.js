@@ -23,6 +23,22 @@ function clock(ms) {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+function stamp(ms) {
+  const d = new Date(ms);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${clock(ms)}`;
+}
+
+function jwtExp(token) {
+  try {
+    const body = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = body + "=".repeat((4 - (body.length % 4)) % 4);
+    return Number(JSON.parse(atob(padded))?.exp) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 function gauge(t, value, limited) {
   const color = limited ? t.blocked : value >= 90 ? t.blocked : value >= 70 ? t.working : t.accent;
   return div()
@@ -58,7 +74,11 @@ async function readGo(root) {
 
 async function readCursor(root) {
   const auth = await readAuth(root, CURSOR_AUTH);
-  if (!auth.accessToken) throw new Error("no cursor access token");
+  if (!auth.accessToken) throw new Error("no cursor access token, run cursor-agent login");
+  const exp = jwtExp(auth.accessToken) * 1000;
+  if (exp && exp <= Date.now()) {
+    throw new Error(`login expired ${stamp(exp)}, run cursor-agent login`);
+  }
   const call = async (method) => {
     const res = await fetch(`https://api2.cursor.sh/aiserver.v1.DashboardService/${method}`, {
       method: "POST",
@@ -69,6 +89,7 @@ async function readCursor(root) {
       },
       body: "{}",
     });
+    if (res.status === 401) throw new Error("login expired, run cursor-agent login");
     if (!res.ok) throw new Error(`cursor.sh ${method} ${res.status}`);
     return res.json();
   };
