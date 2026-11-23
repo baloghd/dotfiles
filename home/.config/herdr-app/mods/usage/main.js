@@ -1,10 +1,13 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { theme, home, readTextFile } from "herdr";
+import { theme, home, readTextFile, exec } from "herdr";
 
 const REFRESH_MS = 120_000;
+const KEYS_ON = "dev";
 const OPENCODE_AUTH = ".pi/agent/auth.json";
 const CURSOR_AUTH = ".config/cursor/auth.json";
+const DEEPSEEK_ENV = ".config/deepseek/env";
+const OPENROUTER_ENV = ".config/openrouter/env";
 
 const pct = (value) => Math.max(0, Math.min(100, Number(value) || 0));
 
@@ -39,6 +42,17 @@ function jwtExp(token) {
   }
 }
 
+function money(n, currency = "USD") {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return "?";
+  const abs = Math.abs(v);
+  const digits = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
+  const s = v.toFixed(digits);
+  if (currency === "USD") return `$${s}`;
+  if (currency === "CNY") return `¥${s}`;
+  return `${s} ${currency}`;
+}
+
 function gauge(t, value, limited) {
   const color = limited ? t.blocked : value >= 90 ? t.blocked : value >= 70 ? t.working : t.accent;
   return div()
@@ -53,6 +67,21 @@ async function readAuth(root, path) {
   const text = await readTextFile(`${root}/${path}`);
   if (!text) throw new Error(`missing ~/${path}`);
   return JSON.parse(text);
+}
+
+async function remoteJson(script) {
+  const r = await exec("sh", ["-c", script], { on: KEYS_ON, timeout: 45_000 });
+  const out = String(r.stdout ?? "").trim();
+  if (r.code !== 0) {
+    const err = String(r.stderr ?? "").trim() || out || `exit ${r.code}`;
+    throw new Error(err.split("\n").pop());
+  }
+  if (!out) throw new Error("empty response");
+  try {
+    return JSON.parse(out);
+  } catch {
+    throw new Error("bad json");
+  }
 }
 
 async function readGo(root) {
@@ -105,10 +134,117 @@ async function readCursor(root) {
   };
 }
 
+async function readDeepseek() {
+  const data = await remoteJson(`
+set -e
+f="$HOME/${DEEPSEEK_ENV}"
+test -f "$f" || { echo "missing ~/${DEEPSEEK_ENV}" >&2; exit 2; }
+set -a; . "$f"; set +a
+test -n "$DEEPSEEK_API_KEY" || { echo "no DEEPSEEK_API_KEY" >&2; exit 2; }
+curl -sS --max-time 30 -H "Authorization: Bearer $DEEPSEEK_API_KEY" -H "Accept: application/json" \
+  "https://api.deepseek.com/user/balance"
+`);
+  const infos = Array.isArray(data?.balance_infos) ? data.balance_infos : [];
+  const pick = infos.find((b) => b?.currency === "USD") || infos[0];
+  if (!pick) throw new Error("no balance");
+  return {
+    available: Boolean(data?.is_available),
+    currency: String(pick.currency || "USD"),
+    total: Number(pick.total_balance),
+    granted: Number(pick.granted_balance),
+    topped: Number(pick.topped_up_balance),
+  };
+}
+
+async function readOpenrouter() {
+  const data = await remoteJson(`
+set -e
+f="$HOME/${OPENROUTER_ENV}"
+test -f "$f" || { echo "missing ~/${OPENROUTER_ENV} (OPENROUTER_API_KEY=…)" >&2; exit 2; }
+set -a; . "$f"; set +a
+test -n "$OPENROUTER_API_KEY" || { echo "no OPENROUTER_API_KEY" >&2; exit 2; }
+export OPENROUTER_MANAGEMENT_API_KEY="\${OPENROUTER_MANAGEMENT_API_KEY:-\$OPENROUTER_API_KEY}"
+python3 <<'PY'
+import json, os, urllib.error, urllib.request
+
+def get(url, key):
+    req = urllib.request.Request(
+        url,
+        headers={"Authorization": f"Bearer {key}", "Accept": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.status, json.load(r)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", "replace")
+        try:
+            payload = json.loads(body)
+        except Exception:
+            payload = {"error": {"message": body[:200]}}
+        return e.code, payload
+
+key = os.environ["OPENROUTER_API_KEY"]
+mgmt = os.environ.get("OPENROUTER_MANAGEMENT_API_KEY") or key
+key_status, key_body = get("https://openrouter.ai/api/v1/key", key)
+credits_status, credits_body = get("https://openrouter.ai/api/v1/credits", mgmt)
+print(json.dumps({
+    "key_status": key_status,
+    "key": key_body,
+    "credits_status": credits_status,
+    "credits": credits_body,
+}))
+PY
+`);
+  if (data.key_status !== 200) {
+    const msg = data?.key?.error?.message || `key ${data.key_status}`;
+    throw new Error(msg);
+  }
+  const keyData = data?.key?.data ?? data?.key ?? {};
+  const limit = keyData.limit == null ? null : Number(keyData.limit);
+  const remaining = keyData.limit_remaining == null ? null : Number(keyData.limit_remaining);
+  const budget = keyData.effective_budget || null;
+  let credits = null;
+  if (data.credits_status === 200) {
+    const c = data?.credits?.data ?? {};
+    const total = Number(c.total_credits);
+    const used = Number(c.total_usage);
+    if (Number.isFinite(total) && Number.isFinite(used)) {
+      credits = { total, used, left: total - used };
+    }
+  }
+  let cap = null;
+  if (limit != null && Number.isFinite(limit) && limit > 0 && remaining != null && Number.isFinite(remaining)) {
+    const used = Math.max(0, limit - remaining);
+    cap = {
+      limit,
+      remaining,
+      value: pct((used / limit) * 100),
+      limited: remaining <= 0,
+      resetsAt: budget?.resets_at ? Date.parse(budget.resets_at) || 0 : 0,
+    };
+  }
+  return {
+    credits,
+    creditsError: data.credits_status === 200 ? null : data?.credits?.error?.message || `credits ${data.credits_status}`,
+    cap,
+    budget: budget
+      ? {
+          spend: Number(budget.spend_usd),
+          limit: Number(budget.limit_usd),
+          remaining: Number(budget.remaining_usd),
+          resetsAt: budget.resets_at ? Date.parse(budget.resets_at) || 0 : 0,
+          interval: String(budget.reset_interval || ""),
+        }
+      : null,
+  };
+}
+
 export default class UsagePanel extends View {
   init(_props, cx) {
     this.go = null;
     this.cursor = null;
+    this.deepseek = null;
+    this.openrouter = null;
     this.problems = [];
     this.loaded = 0;
     this.refresh(cx);
@@ -118,12 +254,21 @@ export default class UsagePanel extends View {
   refresh(cx) {
     cx.spawn(async (cx) => {
       const root = home();
-      const [go, cursor] = await Promise.allSettled([readGo(root), readCursor(root)]);
+      const [go, cursor, deepseek, openrouter] = await Promise.allSettled([
+        readGo(root),
+        readCursor(root),
+        readDeepseek(),
+        readOpenrouter(),
+      ]);
       const problems = [];
       if (go.status === "fulfilled") this.go = go.value;
       else problems.push(`OpenCode Go: ${go.reason?.message ?? go.reason}`);
       if (cursor.status === "fulfilled") this.cursor = cursor.value;
       else problems.push(`Cursor: ${cursor.reason?.message ?? cursor.reason}`);
+      if (deepseek.status === "fulfilled") this.deepseek = deepseek.value;
+      else problems.push(`DeepSeek: ${deepseek.reason?.message ?? deepseek.reason}`);
+      if (openrouter.status === "fulfilled") this.openrouter = openrouter.value;
+      else problems.push(`OpenRouter: ${openrouter.reason?.message ?? openrouter.reason}`);
       this.problems = problems;
       this.loaded = Date.now();
       cx.notify();
@@ -174,6 +319,8 @@ export default class UsagePanel extends View {
     const t = theme();
     const go = this.go;
     const cursor = this.cursor;
+    const deepseek = this.deepseek;
+    const openrouter = this.openrouter;
     const stale = (label) => div().text_size(10.5).text_color(t.blocked).child(label);
 
     return v_flex()
@@ -210,7 +357,11 @@ export default class UsagePanel extends View {
       .when(Boolean(cursor), (el) =>
         el.child(
           this.card(t, `Cursor ${cursor.plan}`, cursor.price, [
-            this.meter(t, "included usage", { value: cursor.value, limited: cursor.value >= 100, resetsAt: cursor.resetsAt }),
+            this.meter(t, "included usage", {
+              value: cursor.value,
+              limited: cursor.value >= 100,
+              resetsAt: cursor.resetsAt,
+            }),
             h_flex()
               .gap(12)
               .child(div().text_size(10.5).text_color(t.dim).child(`API ${Math.round(cursor.api)}%`))
@@ -218,6 +369,86 @@ export default class UsagePanel extends View {
           ]),
         ),
       )
+      .when(Boolean(deepseek), (el) =>
+        el.child(
+          this.card(t, "DeepSeek", deepseek.available ? "platform" : "unavailable", [
+            h_flex()
+              .justify_between()
+              .w("100%")
+              .child(div().text_color(t.muted).child("balance"))
+              .child(
+                div()
+                  .font_semibold()
+                  .text_color(deepseek.available ? t.foreground : t.blocked)
+                  .child(money(deepseek.total, deepseek.currency)),
+              ),
+            h_flex()
+              .gap(12)
+              .child(
+                div()
+                  .text_size(10.5)
+                  .text_color(t.dim)
+                  .child(`topped ${money(deepseek.topped, deepseek.currency)}`),
+              )
+              .child(
+                div()
+                  .text_size(10.5)
+                  .text_color(t.dim)
+                  .child(`granted ${money(deepseek.granted, deepseek.currency)}`),
+              ),
+            div().text_size(10).text_color(t.dim).child(`keys on ${KEYS_ON}`),
+          ]),
+        ),
+      )
+      .when(Boolean(openrouter), (el) => {
+        const or = openrouter;
+        const kids = [];
+        if (or.credits) {
+          kids.push(
+            h_flex()
+              .justify_between()
+              .w("100%")
+              .child(div().text_color(t.muted).child("credits left"))
+              .child(div().font_semibold().text_color(t.foreground).child(money(or.credits.left))),
+          );
+          kids.push(
+            h_flex()
+              .gap(12)
+              .child(div().text_size(10.5).text_color(t.dim).child(`used ${money(or.credits.used)}`))
+              .child(div().text_size(10.5).text_color(t.dim).child(`bought ${money(or.credits.total)}`)),
+          );
+        } else if (or.creditsError) {
+          kids.push(div().text_size(10.5).text_color(t.dim).child(`credits: ${or.creditsError}`));
+        }
+        if (or.cap) {
+          kids.push(
+            this.meter(t, "key spend cap", {
+              value: or.cap.value,
+              limited: or.cap.limited,
+              resetsAt: or.cap.resetsAt,
+            }),
+          );
+          kids.push(
+            div()
+              .text_size(10.5)
+              .text_color(t.dim)
+              .child(`${money(or.cap.remaining)} of ${money(or.cap.limit)} left`),
+          );
+        }
+        if (or.budget && Number.isFinite(or.budget.limit) && or.budget.limit > 0) {
+          const usedPct = pct((or.budget.spend / or.budget.limit) * 100);
+          kids.push(
+            this.meter(t, or.budget.interval ? `${or.budget.interval} budget` : "budget", {
+              value: usedPct,
+              limited: or.budget.remaining <= 0,
+              resetsAt: or.budget.resetsAt,
+            }),
+          );
+        }
+        kids.push(div().text_size(10).text_color(t.dim).child(`keys on ${KEYS_ON}`));
+        const subtitle = or.credits ? money(or.credits.left) : "pay as you go";
+        return el.child(this.card(t, "OpenRouter", subtitle, kids));
+      })
       .when(this.problems.length > 0, (el) =>
         el.child(v_flex().gap(2).children(this.problems.map(stale))),
       );
