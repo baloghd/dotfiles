@@ -1,0 +1,13 @@
+{
+  "programs": {
+    "vibe": {
+      "name": "Mistral Vibe",
+      "icon": "my-icons/mistral.svg",
+      "tint": false,
+      "tile": "#e10500",
+      "color": "#ffffff",
+      "run": ["vibe"],
+      "match": ["mistral"]
+    }
+  }
+}
